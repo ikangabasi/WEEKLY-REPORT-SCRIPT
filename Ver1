@@ -1,0 +1,167 @@
+let ssURL = 'https://docs.google.com/spreadsheets/d/1n7-D_y6TGhxYvt-kLMDxf6JlSrE0ZTiW7mUZIlG1_4E/edit';
+let sName = 'Report Repository';
+
+/*function onOpen(e) {
+  SpreadsheetApp.getUi().createMenu('MAC-DONALD').addItem('Clear Sheet', 'clearSheet').addToUi();
+
+} */
+
+var folderName = 'Weekly Report Sheets From Script';
+
+function dateTest(){
+  
+
+  //Create start and end dates 
+  const addDays = (date, period) => {
+    date.setDate(date.getDate() + period);
+  };
+
+  let date = new Date();
+  
+  addDays(date, -6);
+  let startDate = date.toDateString();
+
+  addDays(date, +6)
+  let endDate = date.toDateString();
+
+  Logger.log(startDate + " to " + endDate)
+
+}
+
+function weeklyReportMgt() {
+
+  //Create start and end dates 
+  const addDays = (date, period) => {
+    date.setDate(date.getDate() + period);
+  };
+
+  let date = new Date();
+
+  addDays(date, -3);
+  let startDate = date.toDateString();
+
+  addDays(date, +6)
+  let endDate = date.toDateString();
+  // addDays(date, +6);
+  // let endDate = date.toDateString();
+
+  //Create copy of old Spreadsheet and set sheet permissions
+  let ss = SpreadsheetApp.openByUrl(ssURL);
+  let lastRow = ss.getSheetByName(sName).getDataRange().getLastRow();
+  let lastCol = ss.getSheetByName(sName).getDataRange().getLastColumn();
+  let oldSheetURL = ss.getSheetByName(sName).getRange(lastRow, 3).getValue();
+
+  var newSheet = SpreadsheetApp.openByUrl(oldSheetURL).copy('WEEKLY REPORT FOR SUPPORT AND INTEGRATION FOR ' + startDate + ' TO ' + endDate);
+  var newSheetUrl = newSheet.getUrl();
+  var newSheetName = newSheet.getName();
+  ss.getSheetByName(sName).appendRow([(new Date()).toDateString(), newSheetName, newSheetUrl]);
+  newSheet.getSheetByName(sName).hideSheet();
+
+  // var oldSheet = SpreadsheetApp.getActive()
+  // var newSheet = oldSheet.copy('WEEKLY REPORT FOR SUPPORT AND INTEGRATION ' + startDate + '---' + endDate);
+  newSheet.getSheetByName('Integration (David)').protect().addEditor('duko@swifta.com');
+  newSheet.getSheetByName('Support (Julius)').protect().addEditor('jelewude@swifta.com');
+  newSheet.getSheetByName('Testing (Tivere)').protect().addEditor('tgodwin@swifta.com');
+  newSheet.getSheetByName('Support (Gbolahan)').protect().addEditor('gbolahan@infibranches.com');
+  newSheet.getSheetByName('Testing (Adeoye)').protect().addEditor('aajibola@swifta.com');
+  newSheet.getSheetByName('Support (Sunday)').protect().addEditor('sedem@swifta.com');
+  newSheet.getSheetByName('Support (Innocent)').protect().addEditor('innocent@infibranches.com');
+  newSheet.getSheetByName('Integration (Ayoola)').protect().addEditor('afolami@swifta.com');
+  
+  // newSheetSheets[0].protect().addEditor('nsikumoh@gmail.com');
+  // newSheetSheets[1].protect().addEditor('joseph@gedu.demo.swifta.com');
+
+
+  //Add editors to new Spreadsheet
+  var newSheetId = newSheet.getId();
+
+  SpreadsheetApp.openById(newSheetId)
+    // .addEditor('nsikumoh@gmail.com')
+    // .addEditor('joseph@gedu.demo.swifta.com')
+  .addEditor('jelewude@swifta.com')
+  .addEditor('tgodwin@swifta.com')  
+  .addEditor('gbolahan@infibranches.com')    
+  // .addEditor('obabalola@swifta.com')
+  .addEditor('aajibola@swifta.com')      
+  .addEditor('innocent@infibranches.com')
+  .addEditor('afolami@swifta.com')
+  .addEditor('sedem@swifta.com')
+  .addEditor('duko@swifta.com');
+
+  //Remove editors from old Spreadsheet
+  /* var editorList = SpreadsheetApp.openByUrl(oldSheetURL).getEditors();
+  for (var y = 0; y < editorList.length; y++) {
+    var editorEmail = editorList[y].getEmail();
+    SpreadsheetApp.openByUrl(oldSheetURL).removeEditor(editorEmail);  
+  } */
+  // enableViewer(oldSheetURL);
+  //Clear former contents and add headings to sheets in new Spreadsheet
+
+  var sheets = newSheet.getSheets();
+
+  for (var x = 0; x < sheets.length - 1; x++) {
+    sheets[x].clear().getRange(1, 2).setValue('Achievements this week').setFontWeight('bold').setFontSize(13).setHorizontalAlignment('center');
+    sheets[x].getRange("B16").setValue('Escalations/Observations/RISK').setFontWeight('bold').setFontSize(13).setHorizontalAlignment('center');
+    sheets[x].getRange("F1").setValue('Activities for next Week').setFontWeight('bold').setFontSize(13).setHorizontalAlignment('center');
+  }
+
+  //Create Folder for sheets
+  var folders = DriveApp.getFolders();
+  var folderArray = [];
+
+  while (folders.hasNext()) {
+    var newFolderName = folders.next().getName();
+    folderArray.push(newFolderName);
+  }
+
+  if (folderArray.includes(folderName)) {
+    DriveApp.getFoldersByName(folderName);
+    DriveApp.getFileById(newSheetId);
+    DriveApp.getFileById(newSheetId).getParents().next().removeFile(DriveApp.getFileById(newSheetId));
+    DriveApp.getFoldersByName(folderName).next().addFile(DriveApp.getFileById(newSheetId));
+  } else {
+    var reportFolder = DriveApp.createFolder(folderName);
+    var newSheetFromDrive = DriveApp.getFileById(newSheetId);
+    var parentsOfNewSheet = DriveApp.getFileById(newSheetId).getParents();
+    parentsOfNewSheet.next().removeFile(newSheetFromDrive);
+    reportFolder.addFile(newSheetFromDrive);
+  }
+
+  //Send email to team members with new report sheet attached  
+  // var recipients = "jnsikak@swifta.com,nsikumoh@gmail.com,joseph@gedu.demo.swifta.com";
+  var recipients = "jelewude@swifta.com,tgodwin@swifta.com,gbolahan@infibranches.com,jnsikak@swifta.com,aajibola@swifta.com,innocent@infibranches.com,sedem@swifta.com,afolami@swifta.com,duko@swifta.com"; 
+  var body = 'Hello Team, \n \nPlease enter your weekly report in the sheet below. \n \n' + newSheetUrl + '\n \n \nThank you.';
+
+  GmailApp.sendEmail(recipients, 'WEEKLY REPORT FOR SUPPORT AND INTEGRATION FOR ' + startDate + ' to ' + endDate, body);
+  
+} 
+
+/* function getSheetDetails() {
+
+  let ss = SpreadsheetApp.openByUrl(ssURL);
+  let lastRow = ss.getSheetByName(sName).getDataRange().getLastRow();
+  let lastCol = ss.getSheetByName(sName).getDataRange().getLastColumn();
+  // let val = ss.getSheetByName(sName).getRange(lastRow - 1, lastCol, 1, 1).getValue();
+  ss.getSheetByName(sName).appendRow([lastRow, lastCol, ssURL]);
+
+} */
+
+function enableViewer() {
+
+  let ss = SpreadsheetApp.openByUrl(ssURL);
+  let lastRow = ss.getSheetByName(sName).getDataRange().getLastRow();
+  let lastCol = ss.getSheetByName(sName).getDataRange().getLastColumn();
+  let oldSheetURL = ss.getSheetByName(sName).getRange(lastRow - 1 , lastCol, 1, 1).getValue();
+
+  // Logger.log(oldSheetURL)
+
+  var editorList = SpreadsheetApp.openByUrl(oldSheetURL).getEditors();
+
+  for (var y = 0; y < editorList.length; y++) {
+    var editorEmail = editorList[y].getEmail();
+    SpreadsheetApp.openByUrl(oldSheetURL).removeEditor(editorEmail).addViewer(editorEmail);
+
+  } 
+
+}
+
